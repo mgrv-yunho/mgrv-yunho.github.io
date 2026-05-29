@@ -1,0 +1,10 @@
+# 평문 원본 — 절대 커밋/배포 금지 (여기 넣고 encrypt.sh로 암호화)
+src/
+
+# 임시/빌드 산출물
+_enc_test/
+encrypted/
+decrypted/
+
+# OS
+.DS_Store
