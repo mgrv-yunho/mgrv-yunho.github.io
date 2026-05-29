@@ -1,23 +1,63 @@
 # mgrv-yunho.github.io
 
-정적 HTML 파일을 GitHub Pages로 배포하기 위한 user 사이트 레포지토리입니다.
+비밀번호로 보호되는 정적 문서 모음을 GitHub Pages로 배포하는 사이트입니다.
 
-## 배포 방식
+- 사이트: https://mgrv-yunho.github.io/
+- 메인(`index.html`)은 글 **목차를 최신순(날짜 내림차순)** 으로 보여줍니다.
+- **모든 문서(목차 포함)는 StatiCrypt로 AES 암호화** 되어, 비밀번호 없이는 내용을 볼 수 없습니다.
+- 사이트 전체가 **단일 비밀번호**입니다. 한 번 입력하면 그 세션 동안 모든 문서가 열립니다.
+  - 데모 비번: `demo1234` (실제 비번은 아래처럼 교체)
 
-- 소스: `main` 브랜치 / 루트(`/`)
-- 진입점: `index.html`
-- 게시 URL: https://mgrv-yunho.github.io/
+> ⚠️ 무료 플랜은 private 레포에서 Pages 게시가 안 됩니다. 그래서 레포는 public이고,
+> 대신 내용을 암호화해 보호합니다. (진짜 접근 제어가 필요하면 Enterprise Pages / Cloudflare Access 등)
 
-## 업데이트 방법
+## 디렉토리
+
+| 경로 | 설명 | 배포 |
+|---|---|---|
+| `src/posts/*.html` | 평문 원본 (여기에 글 작성) | ❌ (`.gitignore`) |
+| `src/index.html` | build가 만든 평문 목차 | ❌ (`.gitignore`) |
+| `index.html` | 암호화된 목차 | ✅ |
+| `posts/*.html` | 암호화된 각 글 | ✅ |
+| `build.mjs` | 목차 생성기 (날짜 내림차순) | — |
+| `build.sh` | 목차 생성 + 전체 암호화 | — |
+
+## 새 글 추가하기
+
+1. `src/posts/` 에 HTML을 추가합니다. 파일명은 `YYYY-MM-DD-슬러그.html` 권장.
+   각 파일에 제목과 날짜를 넣으세요:
+   ```html
+   <title>글 제목</title>
+   <meta name="date" content="2026-05-29" />
+   ```
+   (제목이 없으면 파일명, 날짜가 없으면 파일 수정시각이 쓰입니다.)
+
+2. 빌드 — 목차를 다시 만들고 전부 암호화합니다:
+   ```bash
+   STATICRYPT_PASSWORD='사이트비밀번호' ./build.sh
+   ```
+
+3. 배포:
+   ```bash
+   git add -A
+   git commit -m "add post"
+   git push
+   ```
+   push하면 GitHub Pages가 자동 재배포합니다. (평문 `src/`는 커밋되지 않습니다.)
+
+## 비밀번호 변경
 
 ```bash
-# 파일 수정 후
-git add .
-git commit -m "update site"
-git push
+STATICRYPT_PASSWORD='새비밀번호' ./build.sh
+git add -A && git commit -m "rotate password" && git push
 ```
+모든 문서가 새 비밀번호로 다시 암호화됩니다.
 
-푸시하면 GitHub Pages가 자동으로 다시 빌드/배포합니다.
+## 요구사항
 
-> ℹ️ 무료 플랜에서 Pages를 게시하려면 레포가 **public**이어야 합니다.
-> private을 유지하면서 게시하려면 GitHub Pro/Team/Enterprise 플랜이 필요합니다.
+- Node.js (목차 생성)
+- `npx staticrypt` (자동 설치됨)
+
+---
+
+에이전트(Claude)용 상세 작업 지침은 [`CLAUDE.md`](./CLAUDE.md) 참고.
