@@ -1,11 +1,12 @@
-// src/posts/*.html (평문)을 스캔해 날짜 내림차순 목차(src/index.html)를 생성한다.
+// src/posts/*.html (평문)을 스캔해 날짜 내림차순 목차를 만들어 루트 index.html에 쓴다.
+// 목차(index.html)는 공개로 바로 보이고, 각 글(posts/*.html)만 암호화된다.
 // 각 글의 제목은 <title>, 날짜는 <meta name="date" content="YYYY-MM-DD">에서 읽는다.
 // (없으면 제목=파일명, 날짜=파일 수정시각으로 폴백)
 import { readdirSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const POSTS_DIR = 'src/posts';
-const OUT = 'src/index.html';
+const OUT = 'index.html';
 
 function pick(html, re, fallback) {
   const m = html.match(re);

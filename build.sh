@@ -7,10 +7,10 @@
 #   (STATICRYPT_PASSWORD 를 안 주면 실행 중 입력을 요청합니다.)
 #
 # 흐름:
-#   1) src/posts/*.html (평문) 스캔 → src/index.html(목차) 생성  [build.mjs]
-#   2) src/index.html      → ./index.html        (암호화)
-#   3) src/posts/*.html    → ./posts/<같은이름>   (암호화)
-#   평문(src/)은 절대 커밋·배포되지 않습니다. 암호화 결과물만 배포됩니다.
+#   1) src/posts/*.html (평문) 스캔 → ./index.html(목차) 생성  [build.mjs]
+#      ※ 목차는 공개로 바로 보임 (암호화 안 함)
+#   2) src/posts/*.html → ./posts/<같은이름>  (암호화) ← 각 글만 비번 보호
+#   평문(src/)은 절대 커밋·배포되지 않습니다. 목차 + 암호화된 글만 배포됩니다.
 #
 set -euo pipefail
 
@@ -22,13 +22,10 @@ COMMON=(--short --remember 30
   --template-error "비밀번호가 올바르지 않습니다."
   --template-remember "이 기기에서 30일간 기억")
 
-# 1) 목차 생성
+# 1) 목차 생성 (공개 index.html)
 node build.mjs
 
-# 2) index 암호화
-npx -y staticrypt src/index.html -d . "${COMMON[@]}"
-
-# 3) 글 전부 암호화
+# 2) 글 전부 암호화
 shopt -s nullglob
 posts=(src/posts/*.html)
 if [ ${#posts[@]} -gt 0 ]; then

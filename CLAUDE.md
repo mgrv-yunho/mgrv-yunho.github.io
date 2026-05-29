@@ -7,19 +7,18 @@
 - 배포처: GitHub Pages, **public** 레포 `mgrv-yunho/mgrv-yunho.github.io`
 - URL: https://mgrv-yunho.github.io/  (main 브랜치 / 루트)
 - 무료 플랜이라 private 레포는 Pages 불가(422). 그래서 **레포는 public, 내용은 암호화**로 보호한다.
-- 모든 문서는 **StatiCrypt(AES)** 로 암호화된다. public이어도 비밀번호 없이는 내용을 못 본다.
-- `index.html` = **목차(최신순)** 이며, 목차도 암호화된다. (사용자 요구: "전부 비밀번호 필요")
-- 사이트 전체가 **단일 비밀번호**. 한 번 입력하면 remember-me로 모든 문서가 열린다.
+- `index.html` = **목차(최신순)** 이며 **공개**다(암호화 안 함). 접근하면 바로 글 목록이 보인다.
+- **각 글(`posts/*.html`)만 StatiCrypt(AES)로 암호화**된다. 목차에서 글을 클릭하면 비밀번호를 묻는다.
+- 사이트 전체가 **단일 비밀번호**. 한 번 입력하면 remember-me로 모든 글이 열린다.
   - 현재 데모 비번: `demo1234` (실제 비번은 `STATICRYPT_PASSWORD` 환경변수로 교체)
 
 ## 디렉토리 구조
 ```
 src/posts/*.html   평문 원본            ← .gitignore (절대 커밋/배포 금지)
-src/index.html     build.mjs가 만든 평문 목차  ← .gitignore
-index.html         암호화된 목차          ← 배포됨
+index.html         공개 목차 (build.mjs가 직접 생성, 암호화 안 함)  ← 배포됨
 posts/*.html       암호화된 각 글         ← 배포됨
-build.mjs          목차 생성기 (날짜 내림차순 정렬)
-build.sh           목차 생성 + 전체 암호화 한 번에
+build.mjs          목차 생성기 → index.html 직접 출력 (날짜 내림차순)
+build.sh           목차 생성(공개) + 글만 암호화
 .staticrypt.json   salt (비번 아님 — 커밋 OK, 안 바꾸는 게 좋음)
 ```
 
@@ -36,12 +35,14 @@ build.sh           목차 생성 + 전체 암호화 한 번에
 2. 빌드: `STATICRYPT_PASSWORD='<비번>' ./build.sh`
    - **비번을 모르면 채팅에 남기지 말고** 사용자에게 `!` 로 직접 실행을 요청:
      `! cd <repo> && STATICRYPT_PASSWORD='실제비번' ./build.sh`
-3. 누출 검사: 배포 파일에 평문이 없는지 확인
-   `grep -RE "<글의 고유 평문 문자열>" index.html posts/` → 결과 없어야 정상.
+3. 누출 검사: **암호화돼야 할 글**에 평문이 없는지 확인 (index.html은 공개 목차라 제외)
+   `grep -RE "<글의 고유 평문 문자열>" posts/` → 결과 없어야 정상.
+   (각 `posts/*.html` 에 `staticrypt` 마커가 있어야 암호화된 것.)
 4. 커밋 & push (평문 `src/` 는 .gitignore로 자동 제외).
    - 커밋 전 `git status --short` 로 `src/` 가 안 올라가는지 반드시 확인.
-5. 라이브 확인: `curl -s https://mgrv-yunho.github.io/ | grep staticrypt` (마커 확인),
-   `curl -s -o /dev/null -w "%{http_code}" https://mgrv-yunho.github.io/posts/<파일>` → 200.
+5. 라이브 확인:
+   - 목차: `curl -s https://mgrv-yunho.github.io/` → 글 제목이 평문으로 보이고 `staticrypt` 마커는 **없어야** 정상.
+   - 글: `curl -s https://mgrv-yunho.github.io/posts/<파일>` → `staticrypt` 마커 **있어야** 정상, HTTP 200.
    - Pages 빌드 status API가 `building`으로 지연돼도 CDN엔 보통 먼저 반영됨.
 
 ## 비밀번호 변경
